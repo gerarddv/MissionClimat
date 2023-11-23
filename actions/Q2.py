@@ -7,7 +7,7 @@ class Window(tk.Toplevel):
         super().__init__(parent)
 
         # Définition de la taille de la fenêtre, du titre et des lignes/colonnes de l'affichage grid
-        display.centerWindow(600, 400, self)
+        display.centerWindow(800, 400, self)
         self.title('Q2 : département le plus froid par région')
         display.defineGridDisplay(self, 2, 1)
         ttk.Label(self, text="Modifier cette fonction en s'inspirant du code de F1, pour qu'elle affiche le(s) département(s) avec la température moyenne (c.a.d. moyenne des moyennes de toutes les mesures) la plus basse par région. \nSchéma attendu : (nom_region, nom_departement, temperature_moy_min)",
@@ -16,10 +16,16 @@ class Window(tk.Toplevel):
         #TODO Q2 Modifier la suite du code (en se basant sur le code de F1) pour répondre à Q2
 
         # On définit les colonnes que l'on souhaite afficher dans la fenêtre et la requête
-        columns = ('code_departement', 'nom_departement', 'temperature_min_mesure', 'code_region')
-        query = """SELECT code_departement, nom_departement, MIN(temperature_min_mesure), code_region
-                                          FROM Departements JOIN Mesures USING (code_departement)
-                                          GROUP BY code_region
+        columns = ('code_departement', 'nom_departement', 'temperature_moy_min_mesure', 'code_region')
+        query = """
+                WITH MoyParDep AS (
+                            SELECT ROUND(AVG(temperature_moy_mesure),2) as temp, code_departement
+                            FROM Mesures
+                            GROUP BY code_departement
+                )
+                SELECT D.code_departement, D.nom_departement, MIN(M.temp), D.code_region
+                FROM Departements D JOIN MoyParDep M ON (D.code_departement = M.code_departement)
+                GROUP BY D.code_region
                                           """
         # On utilise la fonction createTreeViewDisplayQuery pour afficher les résultats de la requête
         tree = display.createTreeViewDisplayQuery(self, columns, query, 200)
