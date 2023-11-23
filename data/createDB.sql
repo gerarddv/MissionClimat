@@ -46,17 +46,20 @@ CREATE TABLE Travaux (
     code_region INTEGER,
     CONSTRAINT fk_travaux FOREIGN KEY (code_region) REFERENCES Regions(code_region) ON DELETE CASCADE
 );
-
-
-
+CREATE TABLE RealiseDans (
+    code_departement INTEGER,
+    id_travaux INTEGER,
+    CONSTRAINT pk_RealiseDans PRIMARY KEY (code_departement)
+);
 CREATE TABLE Photovoltaique(
-    puissance_instalee INTEGER,
-    type_panneaux TEXT,
-    CONSTRAINT ck_types_panneaux CHECK types_panneaux IN ('MONOCRISTALLIN', 'POLYCRISALLIN'),
-    CONSTRAINT fk_photo FOREIGN KEY (code_departement) REFERENCES Departements(code_departement) ON DELETE CASCADE
+    id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
+    puissance_installee INTEGER,
+    types_panneaux TEXT CHECK (types_panneaux IN ('MONOCRISTALLIN', 'POLYCRISALLIN')),
+    CONSTRAINT fk_photo FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );
 
 CREATE TABLE Chauffage(
+    id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
     energie_avant_travaux TEXT,
     energie_installe TEXT,
     generateur TEXT,
