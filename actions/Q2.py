@@ -16,5 +16,12 @@ class Window(tk.Toplevel):
         #TODO Q2 Modifier la suite du code (en se basant sur le code de F1) pour répondre à Q2
 
         # On définit les colonnes que l'on souhaite afficher dans la fenêtre et la requête
-
+        columns = ('code_departement', 'nom_departement', 'temperature_min_mesure', 'code_region')
+        query = """SELECT code_departement, nom_departement, MIN(temperature_min_mesure), code_region
+                                          FROM Departements JOIN Mesures USING (code_departement)
+                                          GROUP BY code_region
+                                          """
+        # On utilise la fonction createTreeViewDisplayQuery pour afficher les résultats de la requête
+        tree = display.createTreeViewDisplayQuery(self, columns, query, 200)
+        tree.grid(row=0, sticky="nswe")
         # On utilise la fonction createTreeViewDisplayQuery pour afficher les résultats de la requête

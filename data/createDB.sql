@@ -23,4 +23,6 @@ create table Mesures (
     constraint fk_mesures foreign key (code_departement) references Departements(code_departement)
 );
 
+create table Trav
+
 --TODO Q4 Ajouter les créations des nouvelles tables
