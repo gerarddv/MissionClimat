@@ -121,8 +121,6 @@ def insertDB():
                                     'annee_construction', 'code_region'],
                                    ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
                                    )
-
-
     except Exception as e:
         print ("L'erreur suivante s'est produite lors de l'insertion des données : " + repr(e) + ".")
     else:
