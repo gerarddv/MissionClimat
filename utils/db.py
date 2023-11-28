@@ -185,8 +185,8 @@ def read_csv_file_multi_tables(mainCsvFile, separators, mainQuery, childQueries,
             main_key = cursor.lastrowid
 
             # Insérer dans les tables filles avec la clé primaire de la table principale
-            for childCsvFile, separator, childQuery, childColumns in zip(mainCsvFile, separators[1:], childQueries, childColumnsList):
-                child_df = pandas.read_csv(childCsvFile, sep=separator)
+            for mainCsvFile, separator, childQuery, childColumns in zip(mainCsvFile, separators[1:], childQueries, childColumnsList):
+                child_df = pandas.read_csv(mainCsvFile, sep=separator)
                 child_df = child_df.where(pandas.notnull(child_df), 'null')
 
                 for child_ix, child_row in child_df.iterrows():
