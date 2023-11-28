@@ -24,15 +24,15 @@ CREATE TABLE Mesures (
 );
 
 CREATE TABLE Commune(
-    code_commune INTEGER,
+    code_commune TEXT,
     nom TEXT,
     status TEXT,
-    altitude TEXT,
-    population INTEGER,
-    superficie INTEGER,
+    altitude FLOAT,
+    population FLOAT,
+    superficie FLOAT,
     code_canton INTEGER,
     code_arrondissement INTEGER,
-    code_departement INTEGER,
+    code_departement TEXT,
     CONSTRAINT pk_commune PRIMARY KEY (code_commune, code_departement)
 );
 
@@ -40,9 +40,9 @@ CREATE TABLE Travaux (
     id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
     cout_total_ht FLOAT,
     cout_induit_ht FLOAT,
-    année INTEGER,
+    annee_travaux TEXT,
     type_logement TEXT,
-    année_construction_logement INTEGER,
+    annee_construction_logement TEXT,
     code_region INTEGER,
     CONSTRAINT fk_travaux FOREIGN KEY (code_region) REFERENCES Regions(code_region) ON DELETE CASCADE
 );
@@ -69,9 +69,20 @@ CREATE TABLE Chauffage(
 
 CREATE TABLE Isolations(
 	id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
-    poste TEXT CHECK (poste IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR')),
+    poste TEXT CHECK (poste IN ('COMBLES PERDUES', 'ITI', 'ITE', 'RAMPANTS', 'SARKING','TOITURE TERASSE', 'PLANCHER BAS')),
     isolant TEXT CHECK (isolant IN ('AUTRES', 'LAINE VEGETALE', 'LAINE MINERALE', 'PLASTIQUES')),
     epaisseur INTEGER,
     surface FLOAT,
     CONSTRAINT fk_isolant FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );
+
+-- Création du trigger
+-- CREATE TRIGGER IF NOT EXISTS trigger_check_code_commune
+-- BEFORE INSERT ON Commune
+-- FOR EACH ROW
+-- WHEN NEW.code_commune IS NULL OR NOT typeof(NEW.code_commune) = 'integer'
+-- BEGIN
+--     -- Remplacer le code_commune par 97 si ce n'est pas un entier
+--     UPDATE Commune SET code_commune = 97 WHERE NEW.code_commune IS NULL OR NOT typeof(NEW.code_commune) = 'integer';
+-- END;
+

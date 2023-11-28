@@ -59,7 +59,7 @@ def insertDB():
         # On ajoute les départements référencés avec les anciennes régions
         read_csv_file(
             "data/csv/Communes.csv", ';',
-            "insert into Departements values ('{}','{}', {},'')",
+            "insert into Departements values ('{}','{}', {}, '')",
             ['Code Département', 'Département', 'Code Région']
         )
 
@@ -94,59 +94,35 @@ def insertDB():
         # On ajoute les données dans la table Commune
         read_csv_file(
             "data/csv/Communes.csv", ';',
-            "insert into Commune values ({},'{}','{}','{}',{}, {}, {}, {}, {})",
+            "insert into Commune values ('{}','{}','{}','{}',{}, {}, {}, {}, '{}')",
             ['Code Commune', 'Commune', 'Statut', 'Altitude Moyenne', 'Population', 'Superficie', 'Code Canton',
              'Code Arrondissement', 'Code Département']
         )
 
-        # On ajoute les données dans la table Travaux et isolation
-        read_csv_file(
-            "data/csv/Isolation.csv", ';',
-            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
-            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
+        read_csv_file_multi_tables("data/csv/Isolation.csv", ';',
+                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                                   "insert into Isolations values (NULL, '{}', '{}', {}, {})",
+                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region'],
+                                   ['poste_isolation', 'isolant', 'epaisseur', 'surface']
         )
 
-        # On ajoute les données dans la table Travaux et photovoltaique
-        read_csv_file(
-            "data/csv/Photovoltaique.csv", ';',
-            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
-            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
-        )
+        read_csv_file_multi_tables("data/csv/Photovoltaique.csv", ';',
+                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                                   "insert into Photovoltaique values (NULL, {}, '{}')",
+                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement',
+                                    'annee_construction', 'code_region'],
+                                   ['puissance_installee', 'type_panneaux']
+                                   )
 
-        # On ajoute les données dans la table Travaux et chauffage
-        read_csv_file(
-            "data/csv/Chauffage.csv", ';',
-            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
-            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
-        )
+        read_csv_file_multi_tables("data/csv/Chauffage.csv", ';',
+                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                                   "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')",
+                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement',
+                                    'annee_construction', 'code_region'],
+                                   ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
+                                   )
 
-        # On ajoute les données dans la table RealiseDans
-        # read_csv_file(
-        #     "data/csv/RealiseDans.csv", ';',
-        #     "insert into RealiseDans values ({}, {})",
-        #     ['Code Département', 'ID Travaux']
-        # )
 
-        # On ajoute les données dans la table Photovoltaique
-        read_csv_file(
-            "data/csv/Photovoltaique.csv", ';',
-            "insert into Photovoltaique values (NULL, {}, '{}')",
-            ['Puissance Installee', 'Types Panneaux']
-        )
-
-        # On ajoute les données dans la table Chauffage
-        read_csv_file(
-            "data/csv/Chauffage.csv", ';',
-            "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')",
-            ['Energie Avant Travaux', 'Energie Installe', 'Generateur', 'Type Chaudiere']
-        )
-
-        # On ajoute les données dans la table Isolations
-        read_csv_file(
-            "data/csv/Isolations.csv", ';',
-            "insert into Isolations values (NULL, '{}', '{}', {}, {})",
-            ['Poste', 'Isolant', 'Epaisseur', 'Surface']
-        )
     except Exception as e:
         print ("L'erreur suivante s'est produite lors de l'insertion des données : " + repr(e) + ".")
     else:
@@ -187,4 +163,45 @@ def read_csv_file(csvFile, separator, query, columns):
             cursor.execute(formatedQuery)
         except IntegrityError as err:
             print(err)
+def read_csv_file_multi_tables(mainCsvFile, separators, mainQuery, childQueries, mainColumns, childColumnsList):
+    # Lecture du fichier CSV mainCsvFile avec le séparateur separators[0]
+    main_df = pandas.read_csv(mainCsvFile, sep=separators[0])
+    main_df = main_df.where(pandas.notnull(main_df), 'null')
 
+    cursor = data.cursor()
+
+    for main_ix, main_row in main_df.iterrows():
+        try:
+            main_tab = []
+            for i in range(len(mainColumns)):
+                if isinstance(main_row[mainColumns[i]], str):
+                    main_row[mainColumns[i]] = main_row[mainColumns[i]].replace("'", "''")
+                main_tab.append(main_row[mainColumns[i]])
+
+            main_formatedQuery = mainQuery.format(*main_tab)
+            cursor.execute(main_formatedQuery)
+
+            # Récupérer la clé primaire auto-incrémentée de la table principale
+            main_key = cursor.lastrowid
+
+            # Insérer dans les tables filles avec la clé primaire de la table principale
+            for childCsvFile, separator, childQuery, childColumns in zip(mainCsvFile, separators[1:], childQueries, childColumnsList):
+                child_df = pandas.read_csv(childCsvFile, sep=separator)
+                child_df = child_df.where(pandas.notnull(child_df), 'null')
+
+                for child_ix, child_row in child_df.iterrows():
+                    try:
+                        child_tab = [main_key]
+                        for j in range(len(childColumns)):
+                            if isinstance(child_row[childColumns[j]], str):
+                                child_row[childColumns[j]] = child_row[childColumns[j]].replace("'", "''")
+                            child_tab.append(child_row[childColumns[j]])
+
+                        child_formatedQuery = childQuery.format(*child_tab)
+                        cursor.execute(child_formatedQuery)
+
+                    except IntegrityError as child_err:
+                        print(child_err)
+
+        except IntegrityError as main_err:
+            print(main_err)
