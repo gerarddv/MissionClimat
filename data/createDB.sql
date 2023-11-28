@@ -31,7 +31,7 @@ CREATE TABLE Commune(
     population INTEGER,
     superficie INTEGER,
     code_canton INTEGER,
-    code_arromatizey INTEGER,
+    code_arrondissement INTEGER,
     code_departement INTEGER,
     CONSTRAINT pk_commune PRIMARY KEY (code_commune, code_departement)
 );
@@ -60,23 +60,18 @@ CREATE TABLE Photovoltaique(
 
 CREATE TABLE Chauffage(
     id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
-    energie_avant_travaux TEXT,
-    energie_installe TEXT,
-    generateur TEXT,
-    type_chaudiere TEXT,
-    CONSTRAINT ck_type_chaudiere CHECK type_chaudiere IN ('STANDARD', 'AIR-EAU', 'A CONDENSATION', 'AUTRES', 'AIR-AIR', 'GEOTHERMIE', 'HPE'),
-    CONSTRAINT ck_generateur CHECK generateur IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR'),
-    CONSTRAINT ck_energie_avant_travaux CHECK energie_avant_travaux IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ'),
-    CONSTRAINT ck_energie_installe CHECK energie_installe IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ'),
-    CONSTRAINT fk_chauff FOREIGN KEY (code_departement) REFERENCES Departements(code_departement) ON DELETE CASCADE
+    energie_avant_travaux TEXT CHECK (energie_avant_travaux IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ')),
+    energie_installe TEXT CHECK (energie_installe IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ')),
+    generateur TEXT CHECK (generateur IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR')),
+    type_chaudiere TEXT CHECK (type_chaudiere IN ('STANDARD', 'AIR-EAU', 'A CONDENSATION', 'AUTRES', 'AIR-AIR', 'GEOTHERMIE', 'HPE')),
+    CONSTRAINT fk_chauff FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );
 
 CREATE TABLE Isolations(
-    poste TEXT,
-    isolant TEXT,
+	id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
+    poste TEXT CHECK (poste IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR')),
+    isolant TEXT CHECK (isolant IN ('AUTRES', 'LAINE VEGETALE', 'LAINE MINERALE', 'PLASTIQUES')),
     epaisseur INTEGER,
     surface FLOAT,
-    CONSTRAINT ck_poste CHECK poste IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR'),
-    CONSTRAINT ck_isolant CHECK isolant IN ('AUTRES', 'LAINE VEGETALE', 'LAINE MINERALE', 'PLASTIQUES'),
-    CONSTRAINT fk_isolant FOREIGN KEY (code_departement) REFERENCES Departements(code_departement) ON DELETE CASCADE
+    CONSTRAINT fk_isolant FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );

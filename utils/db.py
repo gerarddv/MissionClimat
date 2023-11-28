@@ -91,7 +91,62 @@ def insertDB():
              "insert into Mesures values ('{}','{}', {}, {}, {})",
              ['code_insee_departement', 'date_obs', 'tmin', 'tmax', 'tmoy']
         )
+        # On ajoute les données dans la table Commune
+        read_csv_file(
+            "data/csv/Communes.csv", ';',
+            "insert into Commune values ({},'{}','{}','{}',{}, {}, {}, {}, {})",
+            ['Code Commune', 'Commune', 'Statut', 'Altitude Moyenne', 'Population', 'Superficie', 'Code Canton',
+             'Code Arrondissement', 'Code Département']
+        )
 
+        # On ajoute les données dans la table Travaux et isolation
+        read_csv_file(
+            "data/csv/Isolation.csv", ';',
+            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
+            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
+        )
+
+        # On ajoute les données dans la table Travaux et photovoltaique
+        read_csv_file(
+            "data/csv/Photovoltaique.csv", ';',
+            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
+            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
+        )
+
+        # On ajoute les données dans la table Travaux et chauffage
+        read_csv_file(
+            "data/csv/Chauffage.csv", ';',
+            "insert into Travaux values (NULL, {}, {}, {}, '{}', {}, {}, {})",
+            ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region']
+        )
+
+        # On ajoute les données dans la table RealiseDans
+        # read_csv_file(
+        #     "data/csv/RealiseDans.csv", ';',
+        #     "insert into RealiseDans values ({}, {})",
+        #     ['Code Département', 'ID Travaux']
+        # )
+
+        # On ajoute les données dans la table Photovoltaique
+        read_csv_file(
+            "data/csv/Photovoltaique.csv", ';',
+            "insert into Photovoltaique values (NULL, {}, '{}')",
+            ['Puissance Installee', 'Types Panneaux']
+        )
+
+        # On ajoute les données dans la table Chauffage
+        read_csv_file(
+            "data/csv/Chauffage.csv", ';',
+            "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')",
+            ['Energie Avant Travaux', 'Energie Installe', 'Generateur', 'Type Chaudiere']
+        )
+
+        # On ajoute les données dans la table Isolations
+        read_csv_file(
+            "data/csv/Isolations.csv", ';',
+            "insert into Isolations values (NULL, '{}', '{}', {}, {})",
+            ['Poste', 'Isolant', 'Epaisseur', 'Surface']
+        )
     except Exception as e:
         print ("L'erreur suivante s'est produite lors de l'insertion des données : " + repr(e) + ".")
     else:
