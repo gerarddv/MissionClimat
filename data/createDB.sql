@@ -13,7 +13,7 @@ CREATE TABLE Departements (
     CONSTRAINT fk_region FOREIGN KEY (code_region) REFERENCES Regions(code_region) ON DELETE CASCADE
 );
 
-CREATE TABLE Mesures (
+CREATE TABLE IF NOT EXISTS Mesures (
     code_departement TEXT,
     date_mesure DATE,
     temperature_min_mesure FLOAT,
@@ -23,7 +23,7 @@ CREATE TABLE Mesures (
     CONSTRAINT fk_mesures FOREIGN KEY (code_departement) REFERENCES Departements(code_departement) ON DELETE CASCADE
 );
 
-CREATE TABLE Commune(
+CREATE TABLE IF NOT EXISTS Commune(
     code_commune TEXT,
     nom TEXT,
     status TEXT,
@@ -36,7 +36,7 @@ CREATE TABLE Commune(
     CONSTRAINT pk_commune PRIMARY KEY (code_commune, code_departement)
 );
 
-CREATE TABLE Travaux (
+CREATE TABLE IF NOT EXISTS Travaux (
     id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
     cout_total_ht FLOAT,
     cout_induit_ht FLOAT,
@@ -46,20 +46,20 @@ CREATE TABLE Travaux (
     code_region INTEGER,
     CONSTRAINT fk_travaux FOREIGN KEY (code_region) REFERENCES Regions(code_region) ON DELETE CASCADE
 );
-CREATE TABLE RealiseDans (
+CREATE TABLE IF NOT EXISTS RealiseDans (
     code_departement INTEGER,
     id_travaux INTEGER,
     CONSTRAINT pk_RealiseDans PRIMARY KEY (code_departement)
 );
-CREATE TABLE Photovoltaique(
-    id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
-    puissance_installee INTEGER,
-    types_panneaux TEXT CHECK (types_panneaux IN ('MONOCRISTALLIN', 'POLYCRISALLIN')),
+CREATE TABLE IF NOT EXISTS Photovoltaique(
+    id_travaux INTEGER PRIMARY KEY,
+    puissance_installee FLOAT,
+    types_panneaux TEXT CHECK (types_panneaux IN ('MONOCRISTALLIN', 'POLYCRISTALLIN')),
     CONSTRAINT fk_photo FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );
 
-CREATE TABLE Chauffage(
-    id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS Chauffage(
+    id_travaux INTEGER PRIMARY KEY,
     energie_avant_travaux TEXT CHECK (energie_avant_travaux IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ')),
     energie_installe TEXT CHECK (energie_installe IN ('AUTRES', 'BOIS', 'ELECTRICITE', 'FIOUL', 'GAZ')),
     generateur TEXT CHECK (generateur IN ('AUTRES', 'CHAUDIERE', 'INSERT', 'PAC', 'POELE','RADIATEUR')),
@@ -67,11 +67,11 @@ CREATE TABLE Chauffage(
     CONSTRAINT fk_chauff FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );
 
-CREATE TABLE Isolations(
-	id_travaux INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS Isolations(
+	id_travaux INTEGER PRIMARY KEY,
     poste TEXT CHECK (poste IN ('COMBLES PERDUES', 'ITI', 'ITE', 'RAMPANTS', 'SARKING','TOITURE TERASSE', 'PLANCHER BAS')),
     isolant TEXT CHECK (isolant IN ('AUTRES', 'LAINE VEGETALE', 'LAINE MINERALE', 'PLASTIQUES')),
-    epaisseur INTEGER,
+    epaisseur FLOAT,
     surface FLOAT,
     CONSTRAINT fk_isolant FOREIGN KEY (id_travaux) REFERENCES Travaux(id_travaux) ON DELETE CASCADE
 );

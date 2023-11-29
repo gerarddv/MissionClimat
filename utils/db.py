@@ -99,28 +99,46 @@ def insertDB():
              'Code Arrondissement', 'Code Département']
         )
 
-        read_csv_file_multi_tables("data/csv/Isolation.csv", ';',
-                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                                   "insert into Isolations values (NULL, '{}', '{}', {}, {})",
-                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction', 'code_region'],
-                                   ['poste_isolation', 'isolant', 'epaisseur', 'surface']
+        #triamtement des travux et isolation
+
+        read_csv_multi_table(
+            "data/csv/Isolation.csv",
+            ';',
+            [
+                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                "insert into Isolations values (NULL, '{}', '{}', {}, {})"
+            ],
+            [
+                ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction',
+                 'code_region'],
+                ['poste_isolation', 'isolant', 'epaisseur', 'surface']
+            ]
         )
-
-        read_csv_file_multi_tables("data/csv/Photovoltaique.csv", ';',
-                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                                   "insert into Photovoltaique values (NULL, {}, '{}')",
-                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement',
-                                    'annee_construction', 'code_region'],
-                                   ['puissance_installee', 'type_panneaux']
-                                   )
-
-        read_csv_file_multi_tables("data/csv/Chauffage.csv", ';',
-                                   "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                                   "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')",
-                                   ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement',
-                                    'annee_construction', 'code_region'],
-                                   ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
-                                   )
+        #traitement des travux et photo
+        read_csv_multi_table(
+            "data/csv/Photovoltaique.csv",
+            ';',
+            [
+                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                "insert into Photovoltaique values (NULL, {}, '{}')"
+            ],
+            [    ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement','annee_construction', 'code_region'],
+                 ['puissance_installee', 'type_panneaux']
+            ]
+        )
+        # traitement des travux et chauff
+        read_csv_multi_table(
+            "data/csv/Chauffage.csv",
+            ';',
+            [
+                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
+                "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')"
+            ],
+            [
+                ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement','annee_construction', 'code_region'],
+                ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
+            ]
+        )
     except Exception as e:
         print ("L'erreur suivante s'est produite lors de l'insertion des données : " + repr(e) + ".")
     else:
@@ -161,45 +179,30 @@ def read_csv_file(csvFile, separator, query, columns):
             cursor.execute(formatedQuery)
         except IntegrityError as err:
             print(err)
-def read_csv_file_multi_tables(mainCsvFile, separators, mainQuery, childQueries, mainColumns, childColumnsList):
-    # Lecture du fichier CSV mainCsvFile avec le séparateur separators[0]
-    main_df = pandas.read_csv(mainCsvFile, sep=separators[0])
-    main_df = main_df.where(pandas.notnull(main_df), 'null')
 
+def read_csv_multi_table(csvFile, separator, queries, columnsList):
+    # Connexion à la base de données SQLite
     cursor = data.cursor()
 
-    for main_ix, main_row in main_df.iterrows():
-        try:
-            main_tab = []
-            for i in range(len(mainColumns)):
-                if isinstance(main_row[mainColumns[i]], str):
-                    main_row[mainColumns[i]] = main_row[mainColumns[i]].replace("'", "''")
-                main_tab.append(main_row[mainColumns[i]])
+    # Lecture du fichier CSV avec le séparateur
+    df = pandas.read_csv(csvFile, sep=separator)
+    df = df.where(pandas.notnull(df), 'null')
 
-            main_formatedQuery = mainQuery.format(*main_tab)
-            cursor.execute(main_formatedQuery)
+    for query, columns in zip(queries, columnsList):
+        for ix, row in df.iterrows():
+            try:
+                tab = []
+                for i in range(len(columns)):
+                    # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
+                    if isinstance(row[columns[i]], str):
+                        row[columns[i]] = row[columns[i]].replace("'", "''")
+                    tab.append(row[columns[i]])
 
-            # Récupérer la clé primaire auto-incrémentée de la table principale
-            main_key = cursor.lastrowid
+                formatedQuery = query.format(*tab)
 
-            # Insérer dans les tables filles avec la clé primaire de la table principale
-            for mainCsvFile, separator, childQuery, childColumns in zip(mainCsvFile, separators[1:], childQueries, childColumnsList):
-                child_df = pandas.read_csv(mainCsvFile, sep=separator)
-                child_df = child_df.where(pandas.notnull(child_df), 'null')
+                # On affiche la requête pour comprendre la construction ou débugger !
+                print(formatedQuery)
 
-                for child_ix, child_row in child_df.iterrows():
-                    try:
-                        child_tab = [main_key]
-                        for j in range(len(childColumns)):
-                            if isinstance(child_row[childColumns[j]], str):
-                                child_row[childColumns[j]] = child_row[childColumns[j]].replace("'", "''")
-                            child_tab.append(child_row[childColumns[j]])
-
-                        child_formatedQuery = childQuery.format(*child_tab)
-                        cursor.execute(child_formatedQuery)
-
-                    except IntegrityError as child_err:
-                        print(child_err)
-
-        except IntegrityError as main_err:
-            print(main_err)
+                cursor.execute(formatedQuery)
+            except IntegrityError as err:
+                print(err)
