@@ -23,15 +23,14 @@ class Window(tk.Toplevel):
         result = []
         try:
             cursor = db.data.cursor()
-            cursor.execute(query)
-            result = cursor.fetchall()
+            result = cursor.execute(query)
         except Exception as e:
             print("Erreur : " + repr(e))
         tabmois = []  # abscisses
         tabminmoy = []
         for row in result:
             tabmois.append(row[0])
-            tabminmoy.append(row[1])
+            tabminmoy.append(row[0])
 
         query = "SELECT strftime('%m', date_travaux) as mois, SUM(cout_total_ht) as total_cout_travaux " \
                 "FROM Travaux " \
@@ -41,15 +40,14 @@ class Window(tk.Toplevel):
         result1 = []
         try:
             cursor = db.data.cursor()
-            cursor.execute(query)
-            result1 = cursor.fetchall()
+            result1 = cursor.execute(query)
         except Exception as e:
             print("Erreur : " + repr(e))
         tabmois1 = []  # abscisses
         tabcout = []
         for row in result1:
             tabmois1.append(row[0])
-            tabcout.append(row[1])
+            tabcout.append(row[0])
 
         fig = Figure(figsize=(10, 6), dpi=100)
         plot1 = fig.add_subplot(111)
