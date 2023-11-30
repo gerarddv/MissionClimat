@@ -9,6 +9,8 @@ def centerWindow (width, height, window):
     center_x = int(screen_width / 2 - width / 2)
     center_y = int(screen_height / 2 - height / 2)
     window.geometry(f'{width}x{height}+{center_x}+{center_y}')
+    window.configure(background='pink')
+
 
 # Définit un affichage de type grid avec nbRow lignes et nbCol colonnes
 def defineGridDisplay (target, nbRow, nbCol):

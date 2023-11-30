@@ -45,7 +45,7 @@ class Window(tk.Toplevel):
                 SELECT D.code_departement, D.nom_departement, strftime('%Y', M.date_mesure) as annee,
                        ROUND(avg(M.temperature_moy_mesure), 2) AS moyenne,
                        min(M.temperature_min_mesure) AS minimum,
-                       max(M.temperature_min_mesure) AS maximum
+                       max(M.temperature_max_mesure) AS maximum
                 FROM Departements D
                 INNER JOIN Mesures M ON D.code_departement = M.code_departement
                 GROUP BY D.code_departement, annee

@@ -104,40 +104,28 @@ def insertDB():
         read_csv_multi_table(
             "data/csv/Isolation.csv",
             ';',
-            [
-                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                "insert into Isolations values (NULL, '{}', '{}', {}, {})"
-            ],
-            [
-                ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement', 'annee_construction',
-                 'code_region'],
-                ['poste_isolation', 'isolant', 'epaisseur', 'surface']
-            ]
+            "insert into Travaux (cout_total_ht, cout_induit_ht, date_travaux, type_logement, annee_construction_logement, code_region) values ({}, {}, '{}','{}','{}',{})",
+            "insert into Isolations values ({}, '{}', '{}', {}, {})",
+            ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement', 'annee_construction','code_region'],
+            ['poste_isolation', 'isolant', 'epaisseur', 'surface']
         )
         #traitement des travux et photo
         read_csv_multi_table(
             "data/csv/Photovoltaique.csv",
             ';',
-            [
-                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                "insert into Photovoltaique values (NULL, {}, '{}')"
-            ],
-            [    ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement','annee_construction', 'code_region'],
-                 ['puissance_installee', 'type_panneaux']
-            ]
+            "insert into Travaux (cout_total_ht, cout_induit_ht, date_travaux, type_logement,annee_construction_logement, code_region) values ({}, {}, '{}','{}','{}',{})",
+            "insert into Photovoltaique values ({}, {}, '{}')",
+            ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement','annee_construction', 'code_region'],
+            ['puissance_installee', 'type_panneaux']
         )
         # traitement des travux et chauff
         read_csv_multi_table(
             "data/csv/Chauffage.csv",
             ';',
-            [
-                "insert into Travaux values (NULL, {}, {}, '{}', '{}', '{}', {})",
-                "insert into Chauffage values (NULL, '{}', '{}', '{}', '{}')"
-            ],
-            [
-                ['cout_total_ht', 'cout_induit_ht', 'annee_travaux', 'type_logement','annee_construction', 'code_region'],
-                ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
-            ]
+            "insert into Travaux (cout_total_ht, cout_induit_ht, date_travaux, type_logement,annee_construction_logement, code_region) values ({}, {}, '{}','{}','{}',{})",
+            "insert into Chauffage values ({}, '{}', '{}', '{}', '{}')",
+            ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement','annee_construction', 'code_region'],
+            ['energie_chauffage_avt_travaux', 'energie_chauffage_installee', 'generateur', 'type_chaudiere']
         )
     except Exception as e:
         print ("L'erreur suivante s'est produite lors de l'insertion des données : " + repr(e) + ".")
@@ -180,29 +168,46 @@ def read_csv_file(csvFile, separator, query, columns):
         except IntegrityError as err:
             print(err)
 
-def read_csv_multi_table(csvFile, separator, queries, columnsList):
-    # Connexion à la base de données SQLite
-    cursor = data.cursor()
-
+def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2):
     # Lecture du fichier CSV avec le séparateur
     df = pandas.read_csv(csvFile, sep=separator)
     df = df.where(pandas.notnull(df), 'null')
 
-    for query, columns in zip(queries, columnsList):
-        for ix, row in df.iterrows():
-            try:
-                tab = []
-                for i in range(len(columns)):
-                    # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
-                    if isinstance(row[columns[i]], str):
-                        row[columns[i]] = row[columns[i]].replace("'", "''")
-                    tab.append(row[columns[i]])
+    cursor = data.cursor()
 
-                formatedQuery = query.format(*tab)
+    # query1 = queries[0]
+    # query2 = queries[1]
+    # columns1 = columnsList[0]
+    # columns2 = columnsList[1]
+    for ix, row in df.iterrows():
+        try:
+            tab = []
+            tab_type = []
+            for i in range(len(columns1)):
+                # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
+                if isinstance(row[columns1[i]], str):
+                    row[columns1[i]] = row[columns1[i]].replace("'", "''")
+                tab.append(row[columns1[i]])
 
-                # On affiche la requête pour comprendre la construction ou débugger !
-                print(formatedQuery)
+            formatedQuery = query1.format(*tab)
 
-                cursor.execute(formatedQuery)
-            except IntegrityError as err:
-                print(err)
+            # On affiche la requête pour comprendre la construction ou débugger !
+            #print(formatedQuery)
+
+            cursor.execute(formatedQuery)
+            id_travaux = cursor.lastrowid
+            for i in range(len(columns2)):
+                # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
+                if isinstance(row[columns2[i]], str):
+                    row[columns2[i]] = row[columns2[i]].replace("'", "''")
+                tab_type.append(row[columns2[i]])
+
+            tab_type.insert(0, id_travaux)
+            formatedQuery2 = query2.format(*tab_type)
+
+            # On affiche la requête pour comprendre la construction ou débugger !
+            # print(formatedQuery)
+
+            cursor.execute(formatedQuery2)
+        except IntegrityError as err:
+            print(err)
