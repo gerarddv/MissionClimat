@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import IntegrityError
 import pandas
-
+from datetime import datetime
 # Pointeur sur la base de données
 data = sqlite3.connect("data/climat_france.db")
 data.execute("PRAGMA foreign_keys = 1")
@@ -187,15 +187,19 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
                 # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
                 if isinstance(row[columns1[i]], str):
                     row[columns1[i]] = row[columns1[i]].replace("'", "''")
+                # if columns1[i] == "date_x":
+                #     tabr = row[columns1[i]].split('/')
+                #     tab.append(datetime(tabr[2], tabr[1], tabr[0]).strftime("%Y-%m-%d"))
+                # else:
                 tab.append(row[columns1[i]])
 
+            print("Values for Query1:", tab)
             formatedQuery = query1.format(*tab)
-
-            # On affiche la requête pour comprendre la construction ou débugger !
-            #print(formatedQuery)
+            print("Formatted Query1:", formatedQuery)
 
             cursor.execute(formatedQuery)
             id_travaux = cursor.lastrowid
+
             for i in range(len(columns2)):
                 # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
                 if isinstance(row[columns2[i]], str):
@@ -203,10 +207,9 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
                 tab_type.append(row[columns2[i]])
 
             tab_type.insert(0, id_travaux)
+            print("Values for Query2:", tab_type)
             formatedQuery2 = query2.format(*tab_type)
-
-            # On affiche la requête pour comprendre la construction ou débugger !
-            # print(formatedQuery)
+            print("Formatted Query2:", formatedQuery2)
 
             cursor.execute(formatedQuery2)
         except IntegrityError as err:
