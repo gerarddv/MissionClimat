@@ -99,16 +99,6 @@ def insertDB():
              'Code Arrondissement', 'Code Département']
         )
 
-        #triamtement des travux et isolation
-
-        read_csv_multi_table(
-            "data/csv/Isolation.csv",
-            ';',
-            "insert into Travaux (cout_total_ht, cout_induit_ht, date_travaux, type_logement, annee_construction_logement, code_region) values ({}, {}, '{}','{}','{}',{})",
-            "insert into Isolations values ({}, '{}', '{}', {}, {})",
-            ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement', 'annee_construction','code_region'],
-            ['poste_isolation', 'isolant', 'epaisseur', 'surface']
-        )
         #traitement des travux et photo
         read_csv_multi_table(
             "data/csv/Photovoltaique.csv",
@@ -117,6 +107,16 @@ def insertDB():
             "insert into Photovoltaique values ({}, {}, '{}')",
             ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement','annee_construction', 'code_region'],
             ['puissance_installee', 'type_panneaux']
+        )
+        # triamtement des travux et isolation
+
+        read_csv_multi_table(
+            "data/csv/Isolation.csv",
+            ';',
+            "insert into Travaux (cout_total_ht, cout_induit_ht, date_travaux, type_logement, annee_construction_logement, code_region) values ({}, {}, '{}','{}','{}',{})",
+            "insert into Isolations values ({}, '{}', '{}', {}, {})",
+            ['cout_total_ht', 'cout_induit_ht', 'date_x', 'type_logement', 'annee_construction', 'code_region'],
+            ['poste_isolation', 'isolant', 'epaisseur', 'surface']
         )
         # traitement des travux et chauff
         read_csv_multi_table(
@@ -183,12 +183,15 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
                 # Pour échapper les noms avec des apostrophes, on remplace dans les chaînes les ' par ''
                 if isinstance(row[columns1[i]], str):
                     row[columns1[i]] = row[columns1[i]].replace("'", "''")
-                # if columns1[i] == "date_x":
-                #     tabr = row[columns1[i]].split('/')
-                #     tab.append(datetime(tabr[2], tabr[1], tabr[0]).strftime("%Y-%m-%d"))
-                # else:
-                tab.append(row[columns1[i]])
-
+                if columns1[i] == "date_x":
+                    date_value = row[columns1[i]]
+                    if date_value.lower() != 'null':
+                        tabr = date_value.split('/')
+                        tab.append(datetime(int(tabr[2]), int(tabr[1]), int(tabr[0])).strftime("%Y-%m-%d"))
+                    else:
+                        tab.append('')
+                else:
+                    tab.append(row[columns1[i]])
             formatedQuery = query1.format(*tab)
             #print("Formatted Query1:", formatedQuery)
 
