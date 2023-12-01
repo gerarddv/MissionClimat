@@ -175,10 +175,6 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
 
     cursor = data.cursor()
 
-    # query1 = queries[0]
-    # query2 = queries[1]
-    # columns1 = columnsList[0]
-    # columns2 = columnsList[1]
     for ix, row in df.iterrows():
         try:
             tab = []
@@ -193,9 +189,8 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
                 # else:
                 tab.append(row[columns1[i]])
 
-            print("Values for Query1:", tab)
             formatedQuery = query1.format(*tab)
-            print("Formatted Query1:", formatedQuery)
+            #print("Formatted Query1:", formatedQuery)
 
             cursor.execute(formatedQuery)
             id_travaux = cursor.lastrowid
@@ -207,9 +202,8 @@ def read_csv_multi_table(csvFile, separator, query1, query2, columns1, columns2)
                 tab_type.append(row[columns2[i]])
 
             tab_type.insert(0, id_travaux)
-            print("Values for Query2:", tab_type)
             formatedQuery2 = query2.format(*tab_type)
-            print("Formatted Query2:", formatedQuery2)
+            #print("Formatted Query2:", formatedQuery2)
 
             cursor.execute(formatedQuery2)
         except IntegrityError as err:
